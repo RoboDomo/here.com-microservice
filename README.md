@@ -10,11 +10,11 @@ To use this microservice, you will need to sign up for a free account at https:/
 allows this microservice to perform up to 250K transactions per month against the here.com weather API for zero cost.
 
 You will create a Javascript/REST application on their site.  Once created, you will always be able to obtain the
-```APP_ID``` and ```APP_CODE``` they assigned to you.  You will need these to start up this microservice.
+```WEATHER_APP_ID``` and ```WEATHER_APP_CODE``` they assigned to you.  You will need these to start up this microservice.
 
 *YOU WILL NOT WANT TO COMMIT THESE TO A GITHUB REPO!*
 
-Once you have created your APP ID and APP CODE, they may not be active against the here.com API for an hour.
+Once you have created your WEATHER_APP ID and WEATHER_APP CODE, they may not be active against the here.com API for an hour.
 
 ## Tips
 
@@ -31,7 +31,7 @@ Defaults to ```mqtt://robodomo```.
 * ```MQTT_TOPIC``` - this is the MQTT topic base for publishing weather condition changes.
 Defaults to ```weather```.  A unique topic is generated for each location, something like ```weather/{location}/key```
 where key can be "astronomy" or "forecast" or "current" or "hourly".
-* ```APP_ID``` - this is the here.com APP_ID that you registered and IS REQUIRED.
-* ```APP_CODE``` - this is the here.com APP_CODE that you registered and IS REQUIRED.
+* ```WEATHER_APP_ID``` - this is the here.com WEATHER_APP_ID that you registered and IS REQUIRED.
+* ```WEATHER_APP_CODE``` - this is the here.com WEATHER_APP_CODE that you registered and IS REQUIRED.
 
-FOR SECURITY REASONS, NEVER COMMIT CREDENTIALS, APP_ID, APP_CODE, ETC.
+FOR SECURITY REASONS, NEVER COMMIT CREDENTIALS, WEATHER_APP_ID, WEATHER_APP_CODE, ETC.
