@@ -23,12 +23,18 @@ const makeTime = t => {
 
   d.setMinutes(parseInt(m.replace(/\D+/g, ""), 10));
   d.setSeconds(0);
-  if (t.toLowerCase().indexOf("pm")) {
-    d.setHours(parseInt(h, 10));
-  } else {
+  if (~t.toLowerCase().indexOf("pm")) {
     d.setHours(parseInt(h, 10) + 12);
+  } else {
+    d.setHours(parseInt(h, 10));
   }
-  return d.getTime();
+  const timestamp = d.getTime() / 1000;
+  //  console.log(
+  //    "timestamp",
+  //    timestamp,
+  //    new Date(timestamp * 1000).toLocaleString()
+  //  );
+  return timestamp;
 };
 
 /**
@@ -37,13 +43,13 @@ const makeTime = t => {
  */
 const responseConversions = {
   skyInfo: "int",
-  temperature: "float",
+  temperature: "int",
   comfort: "float",
-  highTemperature: "float",
-  lowTemperature: "float",
+  highTemperature: "int",
+  lowTemperature: "int",
   humidity: "float",
-  dewPoint: "float",
-  windSpeed: "float",
+  dewPoint: "int",
+  windSpeed: "int",
   windDirection: "int",
   barometerPressure: "float",
   visibility: "float",
@@ -56,8 +62,8 @@ const responseConversions = {
   moonPhase: "float",
   precipitationProbability: "int",
   dayOfWeek: "int",
-  localTime: "int",
-  airInfo: "int",
+  //  localTime: "int",
+  //  airInfo: "int",
   beaufortScale: "int",
   utcTime: "date",
   timezone: "int",
@@ -78,13 +84,13 @@ const processResponse = o => {
         ret[key] = parseFloat(o[key], 10);
         break;
       case "int":
-        ret[key] = parseInt(o[key], 10);
+        ret[key] = Math.round(parseFloat(o[key], 10));
         break;
       case "bool":
         ret[key] = !!parseInt(o[key], 10);
         break;
       case "date":
-        ret[key] = new Date(o[key]).getTime();
+        ret[key] = new Date(o[key]).getTime() / 1000;
         break;
       case "sunrise":
       case "sunset":
@@ -107,13 +113,18 @@ const processResponse = o => {
 class WeatherHost extends HostBase {
   constructor(location) {
     const host = process.env.MQTT_HOST || "mqtt://robodomo",
-      topic = "here";
-    //      topic = process.env.MQTT_TOPIC || "weather";
+      topic = process.env.MQTT_TOPIC || "weather";
 
-    debug("constructor", topic, location);
-    super(host, topic + "/" + location);
+    const [kind, value] = location.split(":");
+    super(host, topic + "/" + value);
+    debug(
+      `constructor ${topic} ${location} => ("${kind}", "${value}") -----> "${
+        this.topic
+      }"`
+    );
     this.location = location;
-    [this.kind, this.value] = this.location.split(":");
+    this.kind = kind;
+    this.value = value;
     // so we don't block the main() program's loop.
     setTimeout(() => {
       this.poll();
@@ -199,22 +210,25 @@ class WeatherHost extends HostBase {
   }
 
   async pollOnce() {
-    const astronomy = await this.pollAstronomy();
+    const astronomy = await this.pollAstronomy(),
+      observation = await this.pollObservation(),
+      hourly = await this.pollHourly(),
+      forecast = await this.pollForecast(),
+      alerts = await this.pollAlerts();
+
     this.state = {
       sunrise: astronomy.sunrise,
       sunset: astronomy.sunset,
-      astronomy: astronomy
-    };
-    this.state = {
+      astronomy: astronomy,
       observation: {
-        ...(await this.pollObservation()),
+        ...observation,
         sunrise: astronomy.sunrise,
         sunset: astronomy.sunset
-      }
+      },
+      hourly: hourly,
+      forecast: forecast,
+      alerts: alerts
     };
-    this.state = { hourly: await this.pollHourly() };
-    this.state = { forecast: await this.pollForecast() };
-    this.state = { alerts: await this.pollAlerts() };
   }
 
   async poll() {
