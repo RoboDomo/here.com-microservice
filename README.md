@@ -10,7 +10,7 @@ To use this microservice, you will need to sign up for a free account at https:/
 allows this microservice to perform up to 250K transactions per month against the here.com weather API for zero cost.
 
 You will create a Javascript/REST application on their site.  Once created, you will always be able to obtain the
-APP ID and APP CODE they assigned to you.  You will need these to start up this microservice.
+```APP_ID``` and ```APP_CODE``` they assigned to you.  You will need these to start up this microservice.
 
 *YOU WILL NOT WANT TO COMMIT THESE TO A GITHUB REPO!*
 
