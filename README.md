@@ -33,5 +33,7 @@ Defaults to ```weather```.  A unique topic is generated for each location, somet
 where key can be "astronomy" or "forecast" or "current" or "hourly".
 * ```WEATHER_APP_ID``` - this is the here.com APP_ID that you registered and IS REQUIRED.
 * ```WEATHER_APP_CODE``` - this is the here.com APP_CODE that you registered and IS REQUIRED.
+* ```WEATHER_METRIC``` - if true, all temperatures and other values will be metric, otherwise imperial.
+Defaults to false (imperial).
 
 FOR SECURITY REASONS, NEVER COMMIT CREDENTIALS, APP_ID/WEATHER_APP_ID, APP_CODE/WEATHER_APP_CODE, ETC.
