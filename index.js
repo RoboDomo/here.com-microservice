@@ -1,5 +1,7 @@
 process.env.DEBUG = "WeatherHost";
 
+const POLL_TIME = 60 * 5; // in seconds
+
 const debug = require("debug")("WeatherHost"),
   console = require("console"),
   request = require("superagent"),
@@ -8,8 +10,6 @@ const debug = require("debug")("WeatherHost"),
 const WEATHER_APP_ID = process.env.WEATHER_APP_ID,
   WEATHER_APP_CODE = process.env.WEATHER_APP_CODE,
   METRIC = process.env.WEATHER_METRIC || "false";
-
-const POLL_TIME = 60 * 5; // in seconds
 
 /**
  * Given a time string of the form hh:mmAM or hh:mm:PM, return number of milliseconds past the epoch for today at
@@ -233,6 +233,7 @@ class WeatherHost extends HostBase {
 
   async poll() {
     while (1) {
+      console.log(new Date().toLocaleTimeString(), "Poll");
       this.pollOnce();
       await this.wait(POLL_TIME * 1000);
     }
@@ -259,6 +260,7 @@ process.on("unhandledRejection", function(reason, p) {
  * WeatherHost that manages the polling for information for the location.
  */
 function main() {
+  console.log("HERE MICROSERVICE (here.com weather)");
   if (!process.env.WEATHER_LOCATIONS) {
     console.log("ENV WEATHER_LOCATIONS is required");
     process.exit(1);
