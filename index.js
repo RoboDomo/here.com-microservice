@@ -242,19 +242,6 @@ class WeatherHost extends HostBase {
 }
 
 /**
- * handler for unhandled rejected promises.  This should never really get called, but we might expect some
- * node_module we depend on to be poorly written.
- */
-process.on("unhandledRejection", function(reason, p) {
-  console.log(
-    "Possibly Unhandled Rejection at: Promise ",
-    p,
-    " reason: ",
-    reason
-  );
-});
-
-/**
  * Main program.
  *
  * Iterate through the comma separated list of locations passed via ENV variable.  For each, create a
