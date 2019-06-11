@@ -1,4 +1,5 @@
 process.env.DEBUG = "WeatherHost";
+process.title = process.env.TITLE || "here-microservice";
 
 const debug = require("debug")("WeatherHost"),
   console = require("console"),
@@ -9,7 +10,7 @@ const WEATHER_APP_ID = process.env.WEATHER_APP_ID,
   WEATHER_APP_CODE = process.env.WEATHER_APP_CODE,
   METRIC = process.env.WEATHER_METRIC || "false";
 
-const POLL_TIME = 60 * 5; // in seconds
+const POLL_TIME = process.env.WEATHER_POLL_TIME || 60 * 5; // in seconds
 
 /**
  * Given a time string of the form hh:mmAM or hh:mm:PM, return number of milliseconds past the epoch for today at
