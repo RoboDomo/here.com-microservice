@@ -12,7 +12,7 @@ const WEATHER_APP_ID = process.env.WEATHER_APP_ID,
 
 const POLL_TIME = process.env.WEATHER_POLL_TIME || 60 * 5; // in seconds
 
-/**
+/*
  * Given a time string of the form hh:mmAM or hh:mm:PM, return number of milliseconds past the epoch for today at
  * the specified time.
  *
@@ -234,6 +234,7 @@ class WeatherHost extends HostBase {
 
   async poll() {
     while (1) {
+      console.log(new Date().toLocaleTimeString(), "Poll");
       this.pollOnce();
       await this.wait(POLL_TIME * 1000);
     }
@@ -260,6 +261,7 @@ process.on("unhandledRejection", function(reason, p) {
  * WeatherHost that manages the polling for information for the location.
  */
 function main() {
+  console.log("HERE MICROSERVICE (here.com weather)");
   if (!process.env.WEATHER_LOCATIONS) {
     console.log("ENV WEATHER_LOCATIONS is required");
     process.exit(1);

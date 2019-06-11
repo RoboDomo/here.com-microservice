@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-docker stop here-microservice
+docker stop robodomo/here-microservice

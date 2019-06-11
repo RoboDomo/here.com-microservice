@@ -1,3 +1,3 @@
 #!/bin/sh
 
-docker build --no-cache -t here-microservice .
+docker build --no-cache -t robodomo/here-microservice .
