@@ -18,7 +18,7 @@ const POLL_TIME = process.env.WEATHER_POLL_TIME || 60 * 5; // in seconds
  *
  * For example, for sunrise at 5:30AM, the (milliseconds) timestamp returned is for TODAY at 5:30AM.
  */
-const makeTime = t => {
+const makeTime = (t) => {
   const d = new Date(),
     [h, m] = t.split(":");
 
@@ -69,7 +69,7 @@ const responseConversions = {
   utcTime: "date",
   timezone: "int",
   sunrise: "sunrise",
-  sunset: "sunset"
+  sunset: "sunset",
 };
 
 /**
@@ -77,7 +77,7 @@ const responseConversions = {
  * responseConversions hashmap.  This is a shallow operation.  A new object is returned with the non-string
  * values converted to int, float, etc.
  */
-const processResponse = o => {
+const processResponse = (o) => {
   const ret = {};
   for (const key in o) {
     switch (responseConversions[key]) {
@@ -119,9 +119,7 @@ class WeatherHost extends HostBase {
     const [kind, value] = location.split(":");
     super(host, topic + "/" + value);
     debug(
-      `constructor ${topic} ${location} => ("${kind}", "${value}") -----> "${
-        this.topic
-      }"`
+      `constructor ${topic} ${location} => ("${kind}", "${value}") -----> "${this.topic}"`
     );
     this.location = location;
     this.kind = kind;
@@ -150,9 +148,19 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "observation",
         [this.kind]: this.value,
-        oneobservation: true
+        oneobservation: true,
       }),
       o = processResponse(res.observations.location[0].observation[0]);
+    return o;
+  }
+
+  async pollWeekly() {
+    const res = await this.report({
+        product: "forecast_7days_simple",
+        [this.kind]: this.value,
+        oneobservation: true,
+      }),
+      o = processResponse(res.dailyForecasts.forecastLocation.forecast);
     return o;
   }
 
@@ -160,7 +168,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_hourly",
         [this.kind]: this.value,
-        oneobservation: true
+        oneobservation: true,
       }),
       o = processResponse(res.hourlyForecasts.forecastLocation.forecast),
       ret = [];
@@ -175,7 +183,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_7days",
         [this.kind]: this.value,
-        oneobservation: true
+        oneobservation: true,
       }),
       o = res.forecasts.forecastLocation.forecast,
       ret = [];
@@ -190,7 +198,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_astronomy",
         [this.kind]: this.value,
-        oneobservation: true
+        oneobservation: true,
       }),
       o = processResponse(res.astronomy.astronomy[0]);
     return o;
@@ -200,7 +208,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "alerts",
         [this.kind]: this.value,
-        oneobservation: true
+        oneobservation: true,
       }),
       o = processResponse(res.alerts);
     return o;
@@ -215,7 +223,8 @@ class WeatherHost extends HostBase {
       observation = await this.pollObservation(),
       hourly = await this.pollHourly(),
       forecast = await this.pollForecast(),
-      alerts = await this.pollAlerts();
+      alerts = await this.pollAlerts(),
+      weekly = await this.pollWeekly();
 
     this.state = {
       sunrise: astronomy.sunrise,
@@ -224,11 +233,12 @@ class WeatherHost extends HostBase {
       observation: {
         ...observation,
         sunrise: astronomy.sunrise,
-        sunset: astronomy.sunset
+        sunset: astronomy.sunset,
       },
       hourly: hourly,
       forecast: forecast,
-      alerts: alerts
+      alerts: alerts,
+      weekly: weekly,
     };
   }
 
