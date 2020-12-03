@@ -113,7 +113,7 @@ const processResponse = (o) => {
  */
 class WeatherHost extends HostBase {
   constructor(location) {
-    const host = process.env.MQTT_HOST || "mqtt://robodomo",
+    const host = process.env.MQTT_HOST || "mqtt://mqtt",
       topic = process.env.MQTT_TOPIC || "weather";
 
     const [kind, value] = location.split(":");
