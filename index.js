@@ -214,7 +214,8 @@ class WeatherHost extends HostBase {
     return o;
   }
 
-  async command() {
+  async command(topic, message) {
+    console.log("topic", topic, message);
     return Promise.resolve();
   }
 
@@ -244,7 +245,7 @@ class WeatherHost extends HostBase {
 
   async poll() {
     while (1) {
-      console.log(new Date().toLocaleTimeString(), "Poll");
+//      console.log(new Date().toLocaleTimeString(), "Poll");
       this.pollOnce();
       await this.wait(POLL_TIME * 1000);
     }
@@ -258,6 +259,8 @@ class WeatherHost extends HostBase {
  * WeatherHost that manages the polling for information for the location.
  */
 function main() {
+  console.log("");
+  console.log("");
   console.log("HERE MICROSERVICE (here.com weather)");
   if (!process.env.WEATHER_LOCATIONS) {
     console.log("ENV WEATHER_LOCATIONS is required");
@@ -270,6 +273,7 @@ function main() {
     process.exit(1);
   }
 
+  console.log("");
   const hosts = {},
     locations = process.env.WEATHER_LOCATIONS.split(",");
 

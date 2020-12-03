@@ -6,11 +6,11 @@
   "author": "Michael Schwartz <mykesx@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "./node_modules/.bin/nodemon ./index.js"
+    "start": "./node_modules/.bin/forever --watch ./index.js"
   },
   "dependencies": {
-    "microservice-core": "https://github.com/RoboDomo/microservice-core",
-    "nodemon": "^2.0.6",
+    "forever": "^3.0.4",
+    "microservice-core": "git+https://github.com/RoboDomo/microservice-core.git",
     "superagent": "^6.1.0"
   }
 }
