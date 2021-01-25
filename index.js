@@ -2,6 +2,7 @@ process.env.DEBUG = "WeatherHost";
 process.title = process.env.TITLE || "here-microservice";
 
 const debug = require("debug")("WeatherHost"),
+  superagent = require("superagent"),
   console = require("console"),
   request = require("superagent"),
   HostBase = require("microservice-core/HostBase");
@@ -18,7 +19,7 @@ const POLL_TIME = process.env.WEATHER_POLL_TIME || 60 * 5; // in seconds
  *
  * For example, for sunrise at 5:30AM, the (milliseconds) timestamp returned is for TODAY at 5:30AM.
  */
-const makeTime = (t) => {
+const makeTime = t => {
   const d = new Date(),
     [h, m] = t.split(":");
 
@@ -69,7 +70,7 @@ const responseConversions = {
   utcTime: "date",
   timezone: "int",
   sunrise: "sunrise",
-  sunset: "sunset",
+  sunset: "sunset"
 };
 
 /**
@@ -77,7 +78,7 @@ const responseConversions = {
  * responseConversions hashmap.  This is a shallow operation.  A new object is returned with the non-string
  * values converted to int, float, etc.
  */
-const processResponse = (o) => {
+const processResponse = o => {
   const ret = {};
   for (const key in o) {
     switch (responseConversions[key]) {
@@ -105,6 +106,9 @@ const processResponse = (o) => {
   return ret;
 };
 
+const celsiusToFahrenheit = c => {
+  return Number(parseInt((c * 9) / 5 + 32, 10));
+};
 /**
  * @class WeatherHost
  *
@@ -142,15 +146,35 @@ class WeatherHost extends HostBase {
     } catch (e) {
       console.log("exception in report", this.location, e.message);
     }
+    return null;
   }
 
   async pollObservation() {
     const res = await this.report({
         product: "observation",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = processResponse(res.observations.location[0].observation[0]);
+    // console.log("observation", o);
+
+    try {
+      const result = await superagent.get(
+        `https://home.nest.com/api/0.1/weather/forecast/${this.location}`
+      );
+      let nest;
+      try {
+        nest = JSON.parse(result.text);
+      } catch (e) {
+        console.log("Exception", e);
+        nest = result.text;
+      }
+
+      o.temperature = celsiusToFahrenheit(nest.now.current_temperature);
+    } catch (e) {
+      this.exception(e);
+      return o;
+    }
     return o;
   }
 
@@ -158,7 +182,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_7days_simple",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = processResponse(res.dailyForecasts.forecastLocation.forecast);
     return o;
@@ -168,7 +192,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_hourly",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = processResponse(res.hourlyForecasts.forecastLocation.forecast),
       ret = [];
@@ -183,7 +207,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_7days",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = res.forecasts.forecastLocation.forecast,
       ret = [];
@@ -198,7 +222,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "forecast_astronomy",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = processResponse(res.astronomy.astronomy[0]);
     return o;
@@ -208,7 +232,7 @@ class WeatherHost extends HostBase {
     const res = await this.report({
         product: "alerts",
         [this.kind]: this.value,
-        oneobservation: true,
+        oneobservation: true
       }),
       o = processResponse(res.alerts);
     return o;
@@ -220,32 +244,36 @@ class WeatherHost extends HostBase {
   }
 
   async pollOnce() {
-    const astronomy = await this.pollAstronomy(),
-      observation = await this.pollObservation(),
-      hourly = await this.pollHourly(),
-      forecast = await this.pollForecast(),
-      alerts = await this.pollAlerts(),
-      weekly = await this.pollWeekly();
+    try {
+      const astronomy = await this.pollAstronomy(),
+        observation = await this.pollObservation(),
+        hourly = await this.pollHourly(),
+        forecast = await this.pollForecast(),
+        alerts = await this.pollAlerts(),
+        weekly = await this.pollWeekly();
 
-    this.state = {
-      sunrise: astronomy.sunrise,
-      sunset: astronomy.sunset,
-      astronomy: astronomy,
-      observation: {
-        ...observation,
+      this.state = {
         sunrise: astronomy.sunrise,
         sunset: astronomy.sunset,
-      },
-      hourly: hourly,
-      forecast: forecast,
-      alerts: alerts,
-      weekly: weekly,
-    };
+        astronomy: astronomy,
+        observation: {
+          ...observation,
+          sunrise: astronomy.sunrise,
+          sunset: astronomy.sunset
+        },
+        hourly: hourly,
+        forecast: forecast,
+        alerts: alerts,
+        weekly: weekly
+      };
+    } catch (e) {
+      console.log("Caught Exception", e);
+    }
   }
 
   async poll() {
     while (1) {
-//      console.log(new Date().toLocaleTimeString(), "Poll");
+      //      console.log(new Date().toLocaleTimeString(), "Poll");
       this.pollOnce();
       await this.wait(POLL_TIME * 1000);
     }
